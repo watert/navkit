@@ -4,13 +4,16 @@
 	line-height: 44px; text-align: center; 
 	position: relative; overflow: hidden;
 	}
+.navctrl .navbar-item { position: absolute; top: 0; width:100%; font-size: 18px; }
+.navctrl .navbar-left { position: absolute; left: 0; }
+.navctrl .btn { border: none; background: transparent; font-size: 18px; color: hsl(210,100%,50%); }
+
 .navctrl .navbar-item { 
 	background: #FFF;
-	-webkit-animation-duration: .3s;
-	animation-duration: .3s;
+	-webkit-animation-duration: .3s; animation-duration: .3s;
 }
+
 .navctrl .views {height:100%; overflow: hidden;}
 .navctrl .view-item {background: #FFF; box-shadow: 0 0 10px rgba(0,0,0,.5); min-height:100%; 
-	-webkit-animation-duration: .5s;
-	animation-duration: .5s;
+	-webkit-animation-duration: .5s; animation-duration: .5s;
 }

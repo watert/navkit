@@ -26,10 +26,11 @@ navbar.pop()
 
 $ ->
 	nav = $("#navbarCtrl").navCtrl()
+	window.nav = nav
 	nav.push( " Content Dom ", {title: "title1"} )
 	setTimeout ()->
 		nav.push( " Content Dom 2 ", {title: "title2"} )
-	,1000
+	,500
 do -> # nav
 
 	class NavViewItem
@@ -47,7 +48,7 @@ do -> # nav
 			@$el.addClass("fadeInRight animated")
 		hide:()->
 			console.debug "hide",@$el
-			@navbar?.$el.hide()
+			@navbar.hide()
 			return
 			@$el.removeClass("fadeInRight").addClass("fadeOutLeft animated")
 			# @$el.addClass("hidden")
@@ -68,10 +69,17 @@ do -> # nav
 			@$ = (a)-> @$el.find(a)
 			if opt.title 
 				@$(".navbar-title").text(opt.title)
+		hide:()->
+			@$el.addClass("fadeOutLeft animated")
 		show:()->
 			@$el.addClass("fadeInRight animated")
 		html: """
 			<div class="navbar-item">
+				<div class="navbar-left">
+					<button class="btn btn-back">
+						< <span class="back-btn-text"> Back </span>
+					</button>
+				</div>
 				<div class="navbar-title">
 					
 				</div>
@@ -111,13 +119,15 @@ do -> # nav
 
 		push:($dom,options)->
 			# init new view
+			lastView = @currentView()
 			view = new NavViewItem($dom)
+			options.prevNavbar = lastView?.navbar
 			navbar = new NavbarItem(options)
+
 			# @setStyle(view.$el)
 			console.debug @$(".views"),$dom
 
 			# hide old one
-			lastView = @currentView()
 			lastView.hide() if lastView
 
 			# insert new view

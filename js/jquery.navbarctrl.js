@@ -29,6 +29,7 @@ navbar.pop()
   $(function() {
     var nav;
     nav = $("#navbarCtrl").navCtrl();
+    window.nav = nav;
     nav.push(" Content Dom ", {
       title: "title1"
     });
@@ -36,7 +37,7 @@ navbar.pop()
       return nav.push(" Content Dom 2 ", {
         title: "title2"
       });
-    }, 1000);
+    }, 500);
   });
 
   (function() {
@@ -63,11 +64,8 @@ navbar.pop()
       };
 
       NavViewItem.prototype.hide = function() {
-        var _ref;
         console.debug("hide", this.$el);
-        if ((_ref = this.navbar) != null) {
-          _ref.$el.hide();
-        }
+        this.navbar.hide();
         return;
         return this.$el.removeClass("fadeInRight").addClass("fadeOutLeft animated");
       };
@@ -97,11 +95,15 @@ navbar.pop()
         }
       }
 
+      NavbarItem.prototype.hide = function() {
+        return this.$el.addClass("fadeOutLeft animated");
+      };
+
       NavbarItem.prototype.show = function() {
         return this.$el.addClass("fadeInRight animated");
       };
 
-      NavbarItem.prototype.html = "<div class=\"navbar-item\">\n	<div class=\"navbar-title\">\n		\n	</div>\n</div>";
+      NavbarItem.prototype.html = "<div class=\"navbar-item\">\n	<div class=\"navbar-left\">\n		<button class=\"btn btn-back\">\n			< <span class=\"back-btn-text\"> Back </span>\n		</button>\n	</div>\n	<div class=\"navbar-title\">\n		\n	</div>\n</div>";
 
       return NavbarItem;
 
@@ -133,10 +135,11 @@ navbar.pop()
 
       NavCtrl.prototype.push = function($dom, options) {
         var lastView, navbar, view;
+        lastView = this.currentView();
         view = new NavViewItem($dom);
+        options.prevNavbar = lastView != null ? lastView.navbar : void 0;
         navbar = new NavbarItem(options);
         console.debug(this.$(".views"), $dom);
-        lastView = this.currentView();
         if (lastView) {
           lastView.hide();
         }
