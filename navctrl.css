@@ -1,0 +1,16 @@
+
+.navctrl{ height:100%; font-family: helvetica; }
+.navctrl .navbar { height:44px; border-bottom: 1px solid rgba(0,0,0,.3); 
+	line-height: 44px; text-align: center; 
+	position: relative; overflow: hidden;
+	}
+.navctrl .navbar-item { 
+	background: #FFF;
+	-webkit-animation-duration: .3s;
+	animation-duration: .3s;
+}
+.navctrl .views {height:100%; overflow: hidden;}
+.navctrl .view-item {background: #FFF; box-shadow: 0 0 10px rgba(0,0,0,.5); min-height:100%; 
+	-webkit-animation-duration: .5s;
+	animation-duration: .5s;
+}

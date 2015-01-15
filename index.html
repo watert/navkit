@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<meta charset="UTF-8">
+	<title>Edge Swipe</title>
+</head>
+<body>
+	<script src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script src="jquery.edgeswipe.js"></script>
+	<script>
+		$(function(){
+			var info = function(){ 
+				html = $.makeArray(arguments).join("\n");
+				$("pre").html(html); 
+			};
+			$(".myswipe").edgeSwipe()
+				.on({
+					"swipeend":function(e,data){ 
+						console.log("swpieend",data); 
+						info("swipe end",JSON.stringify(data,null,"\t"));
+					}
+				})
+		});		
+	</script>
+	<style>
+		.container {
+			margin:0 auto;
+			border:1px solid #DDD;
+			width:auto;
+			
+		}
+		.myswipe {
+			background:#EEE;
+			height:480px;
+			padding:20px;
+		}
+	</style>
+	<br>
+	<div class="container">
+		<div class="myswipe">
+			<pre>Swipe</pre>
+		</div>
+		
+	</div>
+</body>
+</html>

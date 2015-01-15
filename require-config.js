@@ -1,0 +1,12 @@
+require.config({
+	paths:{
+		marionette:"bower_components/marionette/lib/backbone.marionette.min",
+		backbone:"bower_components/backbone/backbone",
+		underscore:"bower_components/underscore/underscore",
+		jquery:"bower_components/jquery/dist/jquery.min"
+	},
+	shim:{
+		marionette:["backbone"],
+		backbone:["underscore"]
+	}
+});
