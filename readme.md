@@ -33,12 +33,10 @@ navbar.pop()
 
 - `animate: true|false`, default `true`
 
-# methods
+## methods
 
 - `push($dom, options)`: push dom to stack with options:
-	- init: ()->
-	- title: ()->
-	- 
+	- init: function when initializing the view
+	- title: string sets title
 - `pop(options)`: pop dom to back
 - `setTitle(titleString)`
-- ``
