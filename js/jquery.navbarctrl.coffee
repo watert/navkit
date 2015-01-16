@@ -88,12 +88,16 @@ class SwipeView extends BaseView
 		# edgeOffset = if @edgeData.startEdge is "left" then offset.x else 0 - offset.x
 		@$el.trigger "swipemove", @edgeData
 	handleTouchEnd:(e)->
+		# touch = e.originalEvent.touches[0]
+
+		# offset = @edgeData.offset = @getOffset(touch)
+		@edgeData.offset ?= {x:0,y:0}
+
 		@edgeData.pointEnd = @pointByTouch(e)
 		@$el.trigger "swipeend", @edgeData
 
 class NavViewItem extends BaseView
 	initialize:($dom, options)->
-		console.debug "init NavViewItem", $dom
 		if typeof $dom is "string" then $dom = $.parseHTML($dom)
 		@$el = $($.parseHTML @html).append($dom)
 		@setStyle()
@@ -102,12 +106,10 @@ class NavViewItem extends BaseView
 		@navbar = navbar
 		navbar.show()
 	show:()->
-		console.debug @$el.width(), cssTranslateX(@$el.width())
 		domAnimate(@$el, cssTranslateX(@$el.width()), cssTranslateX(0) )
-
+	pos: [1,-.2]
 	hide:()->
-		console.debug "hide",@$el
-		domAnimateTo(@$el, cssTranslateX( -@$el.width()*.2 ))
+		domAnimateTo(@$el, cssTranslateX( @$el.width()*@pos[1] ))
 		@navbar.hide()
 
 		return
@@ -123,13 +125,22 @@ class NavViewItem extends BaseView
 			position:"absolute"
 			left:0
 			top:0
-class NavbarItem
-	constructor:(opt)->
+class NavbarItem extends BaseView
+	initialize:(options={})->
 		@$el = $($.parseHTML(@html))
-		@$ = (a)-> @$el.find(a)
-		if opt.title 
-			@$(".navbar-title").text(opt.title)
-	pos: [0.6, -0.2]
+		if lastNavbar = options.prevNavbar
+			console.debug "lastNavbar",lastNavbar
+			@$(".back-btn-text").text(lastNavbar.title)
+		if @title = options.title
+			@$(".navbar-title").text(@title)
+
+	# constructor:(opt)->
+	# 	@$el = $($.parseHTML(@html))
+	# 	@$ = (a)-> @$el.find(a)
+	# 	if opt.title 
+	# 		@title = opt.title
+	# 		@$(".navbar-title").text(opt.title)
+	pos: [0.6, -0.4]
 	hide:()->
 		cssTo =  $.extend {opacity:0} ,cssTranslateX( @$el.width()*@pos[1] )
 		domAnimateTo(@$el, cssTo )
@@ -153,30 +164,49 @@ class NavbarItem
 		</div>
 	"""
 class NavCtrl extends BaseView
-	initSlide:()->
 
 	initialize:(options)->
 		@stack = []
 		@$el.html(@html)
 		@swipe = new SwipeView(el:@el)
+		@$el.on "click",".btn-back", ()=> @pop()
 		@$el.on "swipemove",(e,data)=>
 			if data.startEdge isnt "left" then return
+			if @stack.length <= 1 then return
 			x = data.offset.x
 			if x < 0 then x = 0
 			@setMoveOffsets(x)
 		@$el.on "swipeend",(e,data)=>
-			# reset to original
-			view = @currentView()
-			domAnimateTo( view.$el, cssTranslateX(0) )
-			domAnimateTo(view.navbar.$el, $.extend({opacity:1}, cssTranslateX(0)) )
+			width = @$el.width()
+			x = data.offset?.x
+			if x and x > width*.4 #do back action
+				@pop()
+			else 
+				# reset to original
+				view = @currentView()
+				lastView = @stack[ @stack.length - 2 ]
+				if not lastView then return
+				domAnimateTo( view.$el, cssTranslateX(0) )
+				domAnimateTo( lastView.$el, cssTranslateX(width*lastView.pos[1]) )
+				domAnimateTo(view.navbar.$el, $.extend({opacity:1}, cssTranslateX(0)) )
 
 		@$(".views-container").height( @$el.height() - @$(".navbar").height() )
 	setMoveOffsets:(x)->
+		width = @$el.width()
 		view = @currentView()
-		view.$el.css(cssTranslateX(x))
-
+		viewCss = cssTranslateX(x)
+		viewCss.boxShadow = "0 0 10px rgba(0,0,0,#{ (1-(x/width))*0.5 })"
+		view.$el.css(viewCss)
 		navbarCSS = cssTranslateX(x* view.navbar.pos[0])
-		$.extend(navbarCSS, {opacity:1- x/@$el.width()})
+		$.extend(navbarCSS, {opacity:1- x/width})
+
+		lastView = @stack[ @stack.length - 2 ]
+		lastView.$el.css(cssTranslateX(width*(1- x/width)*lastView.pos[1]))
+		lastNavbar = lastView.navbar
+		# lastNavbarCss = cssTranslateX(width*(1- x/width)* lastNavbar.pos[1])
+		lastNavbarCss = cssTranslateX( (width-x)*lastNavbar.pos[1] )
+		lastNavbarCss.opacity = 1
+		lastNavbar.$el.css(lastNavbarCss)
 
 		view.navbar.$el.css( navbarCSS )
 	html: """
@@ -192,17 +222,30 @@ class NavCtrl extends BaseView
 	"""
 	currentView:()->
 		@stack[@stack.length-1]
-
+	pop:()->
+		if @stack.length <= 1 then return
+		width = @$el.width()
+		view = @currentView()
+		lastView = @stack[@stack.length-2]
+		domAnimateTo(view.$el, $.extend({boxShadow:"0 0 10px rgba(0,0,0,0)"},cssTranslateX(width)) )
+		domAnimateTo(view.navbar.$el,  $.extend({opacity:0},cssTranslateX(width)))
+		domAnimateTo(lastView.$el, cssTranslateX(0))
+		domAnimateTo(lastView.navbar.$el, $.extend({opacity:1},cssTranslateX(0)))
+		@stack.pop()
 	push:($dom,options={})->
 		# init new view
 		lastView = @currentView()
-		console.debug "new NavViewItem",$dom
-		view = new NavViewItem($dom)
 		options.prevNavbar = lastView?.navbar
+		# if lnb = lastView?.navbar
+		# 	options.prevNavbar = lnb
+		# 	@$(".back-btn-text").text(lnb.title)
+
+		view = new NavViewItem($dom)
 		navbar = new NavbarItem(options)
+		if not @stack.length 
+			navbar.$(".btn-back").hide()
 
 		# @setStyle(view.$el)
-		console.debug @$(".views"),$dom
 
 		# hide old one
 		lastView.hide() if lastView
@@ -217,7 +260,7 @@ class NavCtrl extends BaseView
 # Utils
 domAnimateTo = ($dom, to)->
 	$dom.css(cssTransition("all ease-in-out .2s")).css(to)
-		.on "-webkit-transitionEnd transitionend", ()-> $dom.css(cssTransition(""))
+		.one "-webkit-transitionEnd transitionend", ()-> $dom.css(cssTransition(""))
 domAnimate = ($dom, from, to)->
 	$dom.css(from)
 	setTimeout ( -> domAnimateTo($dom, to) ), 33

@@ -151,6 +151,13 @@ navbar.pop()
     };
 
     SwipeView.prototype.handleTouchEnd = function(e) {
+      var _base;
+      if ((_base = this.edgeData).offset == null) {
+        _base.offset = {
+          x: 0,
+          y: 0
+        };
+      }
       this.edgeData.pointEnd = this.pointByTouch(e);
       return this.$el.trigger("swipeend", this.edgeData);
     };
@@ -167,7 +174,6 @@ navbar.pop()
     }
 
     NavViewItem.prototype.initialize = function($dom, options) {
-      console.debug("init NavViewItem", $dom);
       if (typeof $dom === "string") {
         $dom = $.parseHTML($dom);
       }
@@ -181,13 +187,13 @@ navbar.pop()
     };
 
     NavViewItem.prototype.show = function() {
-      console.debug(this.$el.width(), cssTranslateX(this.$el.width()));
       return domAnimate(this.$el, cssTranslateX(this.$el.width()), cssTranslateX(0));
     };
 
+    NavViewItem.prototype.pos = [1, -.2];
+
     NavViewItem.prototype.hide = function() {
-      console.debug("hide", this.$el);
-      domAnimateTo(this.$el, cssTranslateX(-this.$el.width() * .2));
+      domAnimateTo(this.$el, cssTranslateX(this.$el.width() * this.pos[1]));
       this.navbar.hide();
       return;
       return this.$el.removeClass("fadeInRight").addClass("fadeOutLeft animated");
@@ -208,18 +214,29 @@ navbar.pop()
 
   })(BaseView);
 
-  NavbarItem = (function() {
-    function NavbarItem(opt) {
-      this.$el = $($.parseHTML(this.html));
-      this.$ = function(a) {
-        return this.$el.find(a);
-      };
-      if (opt.title) {
-        this.$(".navbar-title").text(opt.title);
-      }
+  NavbarItem = (function(_super) {
+    __extends(NavbarItem, _super);
+
+    function NavbarItem() {
+      return NavbarItem.__super__.constructor.apply(this, arguments);
     }
 
-    NavbarItem.prototype.pos = [0.6, -0.2];
+    NavbarItem.prototype.initialize = function(options) {
+      var lastNavbar;
+      if (options == null) {
+        options = {};
+      }
+      this.$el = $($.parseHTML(this.html));
+      if (lastNavbar = options.prevNavbar) {
+        console.debug("lastNavbar", lastNavbar);
+        this.$(".back-btn-text").text(lastNavbar.title);
+      }
+      if (this.title = options.title) {
+        return this.$(".navbar-title").text(this.title);
+      }
+    };
+
+    NavbarItem.prototype.pos = [0.6, -0.4];
 
     NavbarItem.prototype.hide = function() {
       var cssTo;
@@ -244,7 +261,7 @@ navbar.pop()
 
     return NavbarItem;
 
-  })();
+  })(BaseView);
 
   NavCtrl = (function(_super) {
     __extends(NavCtrl, _super);
@@ -253,18 +270,24 @@ navbar.pop()
       return NavCtrl.__super__.constructor.apply(this, arguments);
     }
 
-    NavCtrl.prototype.initSlide = function() {};
-
     NavCtrl.prototype.initialize = function(options) {
       this.stack = [];
       this.$el.html(this.html);
       this.swipe = new SwipeView({
         el: this.el
       });
+      this.$el.on("click", ".btn-back", (function(_this) {
+        return function() {
+          return _this.pop();
+        };
+      })(this));
       this.$el.on("swipemove", (function(_this) {
         return function(e, data) {
           var x;
           if (data.startEdge !== "left") {
+            return;
+          }
+          if (_this.stack.length <= 1) {
             return;
           }
           x = data.offset.x;
@@ -276,25 +299,45 @@ navbar.pop()
       })(this));
       this.$el.on("swipeend", (function(_this) {
         return function(e, data) {
-          var view;
-          view = _this.currentView();
-          domAnimateTo(view.$el, cssTranslateX(0));
-          return domAnimateTo(view.navbar.$el, $.extend({
-            opacity: 1
-          }, cssTranslateX(0)));
+          var lastView, view, width, x, _ref;
+          width = _this.$el.width();
+          x = (_ref = data.offset) != null ? _ref.x : void 0;
+          if (x && x > width * .4) {
+            return _this.pop();
+          } else {
+            view = _this.currentView();
+            lastView = _this.stack[_this.stack.length - 2];
+            if (!lastView) {
+              return;
+            }
+            domAnimateTo(view.$el, cssTranslateX(0));
+            domAnimateTo(lastView.$el, cssTranslateX(width * lastView.pos[1]));
+            return domAnimateTo(view.navbar.$el, $.extend({
+              opacity: 1
+            }, cssTranslateX(0)));
+          }
         };
       })(this));
       return this.$(".views-container").height(this.$el.height() - this.$(".navbar").height());
     };
 
     NavCtrl.prototype.setMoveOffsets = function(x) {
-      var navbarCSS, view;
+      var lastNavbar, lastNavbarCss, lastView, navbarCSS, view, viewCss, width;
+      width = this.$el.width();
       view = this.currentView();
-      view.$el.css(cssTranslateX(x));
+      viewCss = cssTranslateX(x);
+      viewCss.boxShadow = "0 0 10px rgba(0,0,0," + ((1 - (x / width)) * 0.5) + ")";
+      view.$el.css(viewCss);
       navbarCSS = cssTranslateX(x * view.navbar.pos[0]);
       $.extend(navbarCSS, {
-        opacity: 1 - x / this.$el.width()
+        opacity: 1 - x / width
       });
+      lastView = this.stack[this.stack.length - 2];
+      lastView.$el.css(cssTranslateX(width * (1 - x / width) * lastView.pos[1]));
+      lastNavbar = lastView.navbar;
+      lastNavbarCss = cssTranslateX((width - x) * lastNavbar.pos[1]);
+      lastNavbarCss.opacity = 1;
+      lastNavbar.$el.css(lastNavbarCss);
       return view.navbar.$el.css(navbarCSS);
     };
 
@@ -304,17 +347,39 @@ navbar.pop()
       return this.stack[this.stack.length - 1];
     };
 
+    NavCtrl.prototype.pop = function() {
+      var lastView, view, width;
+      if (this.stack.length <= 1) {
+        return;
+      }
+      width = this.$el.width();
+      view = this.currentView();
+      lastView = this.stack[this.stack.length - 2];
+      domAnimateTo(view.$el, $.extend({
+        boxShadow: "0 0 10px rgba(0,0,0,0)"
+      }, cssTranslateX(width)));
+      domAnimateTo(view.navbar.$el, $.extend({
+        opacity: 0
+      }, cssTranslateX(width)));
+      domAnimateTo(lastView.$el, cssTranslateX(0));
+      domAnimateTo(lastView.navbar.$el, $.extend({
+        opacity: 1
+      }, cssTranslateX(0)));
+      return this.stack.pop();
+    };
+
     NavCtrl.prototype.push = function($dom, options) {
       var lastView, navbar, view;
       if (options == null) {
         options = {};
       }
       lastView = this.currentView();
-      console.debug("new NavViewItem", $dom);
-      view = new NavViewItem($dom);
       options.prevNavbar = lastView != null ? lastView.navbar : void 0;
+      view = new NavViewItem($dom);
       navbar = new NavbarItem(options);
-      console.debug(this.$(".views"), $dom);
+      if (!this.stack.length) {
+        navbar.$(".btn-back").hide();
+      }
       if (lastView) {
         lastView.hide();
       }
@@ -330,7 +395,7 @@ navbar.pop()
   })(BaseView);
 
   domAnimateTo = function($dom, to) {
-    return $dom.css(cssTransition("all ease-in-out .2s")).css(to).on("-webkit-transitionEnd transitionend", function() {
+    return $dom.css(cssTransition("all ease-in-out .2s")).css(to).one("-webkit-transitionEnd transitionend", function() {
       return $dom.css(cssTransition(""));
     });
   };
