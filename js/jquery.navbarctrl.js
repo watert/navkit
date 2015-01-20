@@ -24,418 +24,412 @@ navbar.pop()
 - `setTitle(titleString)`
 - ``
  */
+var BaseView, NavCtrl, NavViewItem, NavbarItem, SwipeView, cssTransition, cssTranslate, cssTranslateX, domAnimate, domAnimateTo,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-(function() {
-  var BaseView, NavCtrl, NavViewItem, NavbarItem, SwipeView, cssTransition, cssTranslate, cssTranslateX, domAnimate, domAnimateTo,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-  $(function() {
-    var nav;
-    nav = $("#navbarCtrl").navCtrl();
-    window.nav = nav;
-    nav.push(" Content Dom ", {
-      title: "title1"
-    });
-    return setTimeout(function() {
-      return nav.push(" Content Dom 2 ", {
-        title: "title2"
-      });
-    }, 500);
+$(function() {
+  var nav;
+  nav = $("#navbarCtrl").navCtrl();
+  window.nav = nav;
+  nav.push(" Content Dom ", {
+    title: "title1"
   });
+  return setTimeout(function() {
+    return nav.push(" Content Dom 2 ", {
+      title: "title2"
+    });
+  }, 500);
+});
 
-  BaseView = (function() {
-    function BaseView(opt) {
+BaseView = (function() {
+  function BaseView(opt) {
+    $.extend(this, {
+      options: opt
+    });
+    if (opt.el) {
       $.extend(this, {
-        options: opt
+        el: opt.el,
+        $el: $(opt.el)
       });
-      if (opt.el) {
-        $.extend(this, {
-          el: opt.el,
-          $el: $(opt.el)
-        });
-      }
-      if (typeof this.initialize === "function") {
-        this.initialize.apply(this, arguments);
-      }
     }
-
-    BaseView.prototype.$ = function() {
-      var _ref;
-      return (_ref = this.$el).find.apply(_ref, arguments);
-    };
-
-    return BaseView;
-
-  })();
-
-  SwipeView = (function(_super) {
-    __extends(SwipeView, _super);
-
-    function SwipeView() {
-      return SwipeView.__super__.constructor.apply(this, arguments);
+    if (typeof this.initialize === "function") {
+      this.initialize.apply(this, arguments);
     }
+  }
 
-    SwipeView.prototype.initialize = function() {
-      this.$el.on("touchstart", (function(_this) {
-        return function(e) {
-          return _this.handleTouchStart(e);
-        };
-      })(this));
-      this.$el.on("touchmove", (function(_this) {
-        return function(e) {
-          return _this.handleTouchMove(e);
-        };
-      })(this));
-      return this.$el.on("touchend", (function(_this) {
-        return function(e) {
-          return _this.handleTouchEnd(e);
-        };
-      })(this));
-    };
+  BaseView.prototype.$ = function() {
+    var _ref;
+    return (_ref = this.$el).find.apply(_ref, arguments);
+  };
 
-    SwipeView.prototype.pointByTouch = function(touch) {
-      var ret;
-      return ret = {
-        x: touch.pageX,
-        y: touch.pageY
+  return BaseView;
+
+})();
+
+SwipeView = (function(_super) {
+  __extends(SwipeView, _super);
+
+  function SwipeView() {
+    return SwipeView.__super__.constructor.apply(this, arguments);
+  }
+
+  SwipeView.prototype.initialize = function() {
+    this.$el.on("touchstart", (function(_this) {
+      return function(e) {
+        return _this.handleTouchStart(e);
       };
-    };
-
-    SwipeView.prototype.getOffset = function(touch) {
-      var point1, point2, ret;
-      point1 = this.edgeData.pointStart;
-      point2 = this.pointByTouch(touch);
-      ret = {
-        x: point2.x - point1.x,
-        y: point2.y - point1.y
+    })(this));
+    this.$el.on("touchmove", (function(_this) {
+      return function(e) {
+        return _this.handleTouchMove(e);
       };
-      return ret;
-    };
-
-    SwipeView.prototype.getStartEdge = function(point) {
-      var edgePercentage, offset, per, pos, width;
-      edgePercentage = .13;
-      width = this.$el.width();
-      offset = this.$el.offset();
-      pos = {
-        x: point.x - offset.left,
-        y: point.y - offset.top
+    })(this));
+    return this.$el.on("touchend", (function(_this) {
+      return function(e) {
+        return _this.handleTouchEnd(e);
       };
-      per = 1.0 * pos.x / width;
-      if (per < edgePercentage) {
-        return "left";
-      } else if (per > (1 - edgePercentage)) {
-        return "right";
-      } else {
-        return "center";
-      }
-    };
+    })(this));
+  };
 
-    SwipeView.prototype.handleTouchStart = function(e) {
-      var point, touch;
-      touch = e.originalEvent.touches[0];
-      point = this.pointByTouch(touch);
-      this.edgeData = e.edgeData = {
-        pointStart: point,
-        startEdge: this.getStartEdge(point)
+  SwipeView.prototype.pointByTouch = function(touch) {
+    var ret;
+    return ret = {
+      x: touch.pageX,
+      y: touch.pageY
+    };
+  };
+
+  SwipeView.prototype.getOffset = function(touch) {
+    var point1, point2, ret;
+    point1 = this.edgeData.pointStart;
+    point2 = this.pointByTouch(touch);
+    ret = {
+      x: point2.x - point1.x,
+      y: point2.y - point1.y
+    };
+    return ret;
+  };
+
+  SwipeView.prototype.getStartEdge = function(point) {
+    var edgePercentage, offset, per, pos, width;
+    edgePercentage = .13;
+    width = this.$el.width();
+    offset = this.$el.offset();
+    pos = {
+      x: point.x - offset.left,
+      y: point.y - offset.top
+    };
+    per = 1.0 * pos.x / width;
+    if (per < edgePercentage) {
+      return "left";
+    } else if (per > (1 - edgePercentage)) {
+      return "right";
+    } else {
+      return "center";
+    }
+  };
+
+  SwipeView.prototype.handleTouchStart = function(e) {
+    var point, touch;
+    touch = e.originalEvent.touches[0];
+    point = this.pointByTouch(touch);
+    this.edgeData = e.edgeData = {
+      pointStart: point,
+      startEdge: this.getStartEdge(point)
+    };
+    return this.$el.trigger("swipestart", this.edgeData);
+  };
+
+  SwipeView.prototype.handleTouchMove = function(e) {
+    var offset, touch;
+    touch = e.originalEvent.touches[0];
+    offset = this.edgeData.offset = this.getOffset(touch);
+    return this.$el.trigger("swipemove", this.edgeData);
+  };
+
+  SwipeView.prototype.handleTouchEnd = function(e) {
+    var _base;
+    if ((_base = this.edgeData).offset == null) {
+      _base.offset = {
+        x: 0,
+        y: 0
       };
-      return this.$el.trigger("swipestart", this.edgeData);
-    };
-
-    SwipeView.prototype.handleTouchMove = function(e) {
-      var offset, touch;
-      touch = e.originalEvent.touches[0];
-      offset = this.edgeData.offset = this.getOffset(touch);
-      return this.$el.trigger("swipemove", this.edgeData);
-    };
-
-    SwipeView.prototype.handleTouchEnd = function(e) {
-      var _base;
-      if ((_base = this.edgeData).offset == null) {
-        _base.offset = {
-          x: 0,
-          y: 0
-        };
-      }
-      this.edgeData.pointEnd = this.pointByTouch(e);
-      return this.$el.trigger("swipeend", this.edgeData);
-    };
-
-    return SwipeView;
-
-  })(BaseView);
-
-  NavViewItem = (function(_super) {
-    __extends(NavViewItem, _super);
-
-    function NavViewItem() {
-      return NavViewItem.__super__.constructor.apply(this, arguments);
     }
+    this.edgeData.pointEnd = this.pointByTouch(e);
+    return this.$el.trigger("swipeend", this.edgeData);
+  };
 
-    NavViewItem.prototype.initialize = function($dom, options) {
-      if (typeof $dom === "string") {
-        $dom = $.parseHTML($dom);
-      }
-      this.$el = $($.parseHTML(this.html)).append($dom);
-      return this.setStyle();
-    };
+  return SwipeView;
 
-    NavViewItem.prototype.setNavbar = function(navbar) {
-      this.navbar = navbar;
-      return navbar.show();
-    };
+})(BaseView);
 
-    NavViewItem.prototype.show = function() {
-      return domAnimate(this.$el, cssTranslateX(this.$el.width()), cssTranslateX(0));
-    };
+NavViewItem = (function(_super) {
+  __extends(NavViewItem, _super);
 
-    NavViewItem.prototype.pos = [1, -.2];
+  function NavViewItem() {
+    return NavViewItem.__super__.constructor.apply(this, arguments);
+  }
 
-    NavViewItem.prototype.hide = function() {
-      domAnimateTo(this.$el, cssTranslateX(this.$el.width() * this.pos[1]));
-      this.navbar.hide();
-      return;
-      return this.$el.removeClass("fadeInRight").addClass("fadeOutLeft animated");
-    };
-
-    NavViewItem.prototype.html = "<div class=\"view-item\">\n\n</div>";
-
-    NavViewItem.prototype.setStyle = function() {
-      return this.$el.css({
-        width: "100%",
-        position: "absolute",
-        left: 0,
-        top: 0
-      });
-    };
-
-    return NavViewItem;
-
-  })(BaseView);
-
-  NavbarItem = (function(_super) {
-    __extends(NavbarItem, _super);
-
-    function NavbarItem() {
-      return NavbarItem.__super__.constructor.apply(this, arguments);
+  NavViewItem.prototype.initialize = function($dom, options) {
+    if (typeof $dom === "string") {
+      $dom = $.parseHTML($dom);
     }
+    this.$el = $($.parseHTML(this.html)).append($dom);
+    return this.setStyle();
+  };
 
-    NavbarItem.prototype.initialize = function(options) {
-      var lastNavbar;
-      if (options == null) {
-        options = {};
-      }
-      this.$el = $($.parseHTML(this.html));
-      if (lastNavbar = options.prevNavbar) {
-        console.debug("lastNavbar", lastNavbar);
-        this.$(".back-btn-text").text(lastNavbar.title);
-      }
-      if (this.title = options.title) {
-        return this.$(".navbar-title").text(this.title);
-      }
-    };
+  NavViewItem.prototype.setNavbar = function(navbar) {
+    this.navbar = navbar;
+    return navbar.show();
+  };
 
-    NavbarItem.prototype.pos = [0.6, -0.4];
+  NavViewItem.prototype.show = function() {
+    return domAnimate(this.$el, cssTranslateX(this.$el.width()), cssTranslateX(0));
+  };
 
-    NavbarItem.prototype.hide = function() {
-      var cssTo;
-      cssTo = $.extend({
-        opacity: 0
-      }, cssTranslateX(this.$el.width() * this.pos[1]));
-      return domAnimateTo(this.$el, cssTo);
-    };
+  NavViewItem.prototype.pos = [1, -.2];
 
-    NavbarItem.prototype.show = function() {
-      var cssFrom, cssTo;
-      cssFrom = $.extend({
-        opacity: 0
-      }, cssTranslateX(this.$el.width() * this.pos[0]));
-      cssTo = $.extend({
-        opacity: 1
-      }, cssTranslateX(0));
-      return domAnimate(this.$el, cssFrom, cssTo);
-    };
+  NavViewItem.prototype.hide = function() {
+    domAnimateTo(this.$el, cssTranslateX(this.$el.width() * this.pos[1]));
+    this.navbar.hide();
+    return;
+    return this.$el.removeClass("fadeInRight").addClass("fadeOutLeft animated");
+  };
 
-    NavbarItem.prototype.html = "<div class=\"navbar-item\">\n	<div class=\"navbar-left\">\n		<button class=\"btn btn-back\">\n			< <span class=\"back-btn-text\"> Back </span>\n		</button>\n	</div>\n	<div class=\"navbar-title\">\n		\n	</div>\n</div>";
+  NavViewItem.prototype.html = "<div class=\"view-item\">\n\n</div>";
 
-    return NavbarItem;
-
-  })(BaseView);
-
-  NavCtrl = (function(_super) {
-    __extends(NavCtrl, _super);
-
-    function NavCtrl() {
-      return NavCtrl.__super__.constructor.apply(this, arguments);
-    }
-
-    NavCtrl.prototype.initialize = function(options) {
-      this.stack = [];
-      this.$el.html(this.html);
-      this.swipe = new SwipeView({
-        el: this.el
-      });
-      this.$el.on("click", ".btn-back", (function(_this) {
-        return function() {
-          return _this.pop();
-        };
-      })(this));
-      this.$el.on("swipemove", (function(_this) {
-        return function(e, data) {
-          var x;
-          if (data.startEdge !== "left") {
-            return;
-          }
-          if (_this.stack.length <= 1) {
-            return;
-          }
-          x = data.offset.x;
-          if (x < 0) {
-            x = 0;
-          }
-          return _this.setMoveOffsets(x);
-        };
-      })(this));
-      this.$el.on("swipeend", (function(_this) {
-        return function(e, data) {
-          var lastView, view, width, x, _ref;
-          width = _this.$el.width();
-          x = (_ref = data.offset) != null ? _ref.x : void 0;
-          if (x && x > width * .4) {
-            return _this.pop();
-          } else {
-            view = _this.currentView();
-            lastView = _this.stack[_this.stack.length - 2];
-            if (!lastView) {
-              return;
-            }
-            domAnimateTo(view.$el, cssTranslateX(0));
-            domAnimateTo(lastView.$el, cssTranslateX(width * lastView.pos[1]));
-            return domAnimateTo(view.navbar.$el, $.extend({
-              opacity: 1
-            }, cssTranslateX(0)));
-          }
-        };
-      })(this));
-      return this.$(".views-container").height(this.$el.height() - this.$(".navbar").height());
-    };
-
-    NavCtrl.prototype.setMoveOffsets = function(x) {
-      var lastNavbar, lastNavbarCss, lastView, navbarCSS, view, viewCss, width;
-      width = this.$el.width();
-      view = this.currentView();
-      viewCss = cssTranslateX(x);
-      viewCss.boxShadow = "0 0 10px rgba(0,0,0," + ((1 - (x / width)) * 0.5) + ")";
-      view.$el.css(viewCss);
-      navbarCSS = cssTranslateX(x * view.navbar.pos[0]);
-      $.extend(navbarCSS, {
-        opacity: 1 - x / width
-      });
-      lastView = this.stack[this.stack.length - 2];
-      lastView.$el.css(cssTranslateX(width * (1 - x / width) * lastView.pos[1]));
-      lastNavbar = lastView.navbar;
-      lastNavbarCss = cssTranslateX((width - x) * lastNavbar.pos[1]);
-      lastNavbarCss.opacity = 1;
-      lastNavbar.$el.css(lastNavbarCss);
-      return view.navbar.$el.css(navbarCSS);
-    };
-
-    NavCtrl.prototype.html = "<div class=\"navctrl\">\n	<div class=\"navbar\">\n	</div>\n	<div class=\"views-container\">\n		<div class=\"views\" style=\"position:relative;\">\n			\n		</div>\n	</div>\n</div>";
-
-    NavCtrl.prototype.currentView = function() {
-      return this.stack[this.stack.length - 1];
-    };
-
-    NavCtrl.prototype.pop = function() {
-      var lastView, view, width;
-      if (this.stack.length <= 1) {
-        return;
-      }
-      width = this.$el.width();
-      view = this.currentView();
-      lastView = this.stack[this.stack.length - 2];
-      domAnimateTo(view.$el, $.extend({
-        boxShadow: "0 0 10px rgba(0,0,0,0)"
-      }, cssTranslateX(width)));
-      domAnimateTo(view.navbar.$el, $.extend({
-        opacity: 0
-      }, cssTranslateX(width)));
-      domAnimateTo(lastView.$el, cssTranslateX(0));
-      domAnimateTo(lastView.navbar.$el, $.extend({
-        opacity: 1
-      }, cssTranslateX(0)));
-      return this.stack.pop();
-    };
-
-    NavCtrl.prototype.push = function($dom, options) {
-      var lastView, navbar, view;
-      if (options == null) {
-        options = {};
-      }
-      lastView = this.currentView();
-      options.prevNavbar = lastView != null ? lastView.navbar : void 0;
-      view = new NavViewItem($dom);
-      navbar = new NavbarItem(options);
-      if (!this.stack.length) {
-        navbar.$(".btn-back").hide();
-      }
-      if (lastView) {
-        lastView.hide();
-      }
-      this.$(".views").append(view.$el);
-      this.$(".navbar").append(navbar.$el);
-      this.stack.push(view);
-      view.setNavbar(navbar);
-      return view.show();
-    };
-
-    return NavCtrl;
-
-  })(BaseView);
-
-  domAnimateTo = function($dom, to) {
-    return $dom.css(cssTransition("all ease-in-out .2s")).css(to).one("-webkit-transitionEnd transitionend", function() {
-      return $dom.css(cssTransition(""));
+  NavViewItem.prototype.setStyle = function() {
+    return this.$el.css({
+      width: "100%",
+      position: "absolute",
+      left: 0,
+      top: 0
     });
   };
 
-  domAnimate = function($dom, from, to) {
-    $dom.css(from);
-    return setTimeout((function() {
-      return domAnimateTo($dom, to);
-    }), 33);
-  };
+  return NavViewItem;
 
-  cssTransition = function(val) {
-    return {
-      "-webkit-transition": "-webkit-" + val,
-      "transition": val
-    };
-  };
+})(BaseView);
 
-  cssTranslate = function(val) {
-    return {
-      "-webkit-transform": val,
-      "transform": val
-    };
-  };
+NavbarItem = (function(_super) {
+  __extends(NavbarItem, _super);
 
-  cssTranslateX = function(x) {
-    return cssTranslate("translateX(" + x + "px)");
-  };
+  function NavbarItem() {
+    return NavbarItem.__super__.constructor.apply(this, arguments);
+  }
 
-  $.fn.navCtrl = function(options) {
-    var nav;
+  NavbarItem.prototype.initialize = function(options) {
+    var lastNavbar;
     if (options == null) {
       options = {};
     }
-    options.el = this;
-    nav = new NavCtrl(options);
-    $(this).data("nav", nav);
-    return nav;
+    this.$el = $($.parseHTML(this.html));
+    if (lastNavbar = options.prevNavbar) {
+      console.debug("lastNavbar", lastNavbar);
+      this.$(".back-btn-text").text(lastNavbar.title);
+    }
+    if (this.title = options.title) {
+      return this.$(".navbar-title").text(this.title);
+    }
   };
 
-}).call(this);
+  NavbarItem.prototype.pos = [0.6, -0.4];
 
-//# sourceMappingURL=jquery.navbarctrl.js.map
+  NavbarItem.prototype.hide = function() {
+    var cssTo;
+    cssTo = $.extend({
+      opacity: 0
+    }, cssTranslateX(this.$el.width() * this.pos[1]));
+    return domAnimateTo(this.$el, cssTo);
+  };
+
+  NavbarItem.prototype.show = function() {
+    var cssFrom, cssTo;
+    cssFrom = $.extend({
+      opacity: 0
+    }, cssTranslateX(this.$el.width() * this.pos[0]));
+    cssTo = $.extend({
+      opacity: 1
+    }, cssTranslateX(0));
+    return domAnimate(this.$el, cssFrom, cssTo);
+  };
+
+  NavbarItem.prototype.html = "<div class=\"navbar-item\">\n	<div class=\"navbar-left\">\n		<button class=\"btn btn-back\">\n			<i class=\"fa fa-angle-left\"></i> <span class=\"back-btn-text\"> Back </span>\n		</button>\n	</div>\n	<div class=\"navbar-title\">\n		\n	</div>\n</div>";
+
+  return NavbarItem;
+
+})(BaseView);
+
+NavCtrl = (function(_super) {
+  __extends(NavCtrl, _super);
+
+  function NavCtrl() {
+    return NavCtrl.__super__.constructor.apply(this, arguments);
+  }
+
+  NavCtrl.prototype.initialize = function(options) {
+    this.stack = [];
+    this.$el.html(this.html);
+    this.swipe = new SwipeView({
+      el: this.el
+    });
+    this.$el.on("click", ".btn-back", (function(_this) {
+      return function() {
+        return _this.pop();
+      };
+    })(this));
+    this.$el.on("swipemove", (function(_this) {
+      return function(e, data) {
+        var x;
+        if (data.startEdge !== "left") {
+          return;
+        }
+        if (_this.stack.length <= 1) {
+          return;
+        }
+        x = data.offset.x;
+        if (x < 0) {
+          x = 0;
+        }
+        return _this.setMoveOffsets(x);
+      };
+    })(this));
+    this.$el.on("swipeend", (function(_this) {
+      return function(e, data) {
+        var lastView, view, width, x, _ref;
+        width = _this.$el.width();
+        x = (_ref = data.offset) != null ? _ref.x : void 0;
+        if (x && x > width * .4) {
+          return _this.pop();
+        } else {
+          view = _this.currentView();
+          lastView = _this.stack[_this.stack.length - 2];
+          if (!lastView) {
+            return;
+          }
+          domAnimateTo(view.$el, cssTranslateX(0));
+          domAnimateTo(lastView.$el, cssTranslateX(width * lastView.pos[1]));
+          return domAnimateTo(view.navbar.$el, $.extend({
+            opacity: 1
+          }, cssTranslateX(0)));
+        }
+      };
+    })(this));
+    return this.$(".views-container").height(this.$el.height() - this.$(".navbar").height());
+  };
+
+  NavCtrl.prototype.setMoveOffsets = function(x) {
+    var lastNavbar, lastNavbarCss, lastView, navbarCSS, view, viewCss, width;
+    width = this.$el.width();
+    view = this.currentView();
+    viewCss = cssTranslateX(x);
+    viewCss.boxShadow = "0 0 10px rgba(0,0,0," + ((1 - (x / width)) * 0.5) + ")";
+    view.$el.css(viewCss);
+    navbarCSS = cssTranslateX(x * view.navbar.pos[0]);
+    $.extend(navbarCSS, {
+      opacity: 1 - x / width
+    });
+    lastView = this.stack[this.stack.length - 2];
+    lastView.$el.css(cssTranslateX(width * (1 - x / width) * lastView.pos[1]));
+    lastNavbar = lastView.navbar;
+    lastNavbarCss = cssTranslateX((width - x) * lastNavbar.pos[1]);
+    lastNavbarCss.opacity = 1;
+    lastNavbar.$el.css(lastNavbarCss);
+    return view.navbar.$el.css(navbarCSS);
+  };
+
+  NavCtrl.prototype.html = "<div class=\"navctrl\">\n	<div class=\"navbar\">\n	</div>\n	<div class=\"views-container\">\n		<div class=\"views\" style=\"position:relative;\">\n			\n		</div>\n	</div>\n</div>";
+
+  NavCtrl.prototype.currentView = function() {
+    return this.stack[this.stack.length - 1];
+  };
+
+  NavCtrl.prototype.pop = function() {
+    var lastView, view, width;
+    if (this.stack.length <= 1) {
+      return;
+    }
+    width = this.$el.width();
+    view = this.currentView();
+    lastView = this.stack[this.stack.length - 2];
+    domAnimateTo(view.$el, $.extend({
+      boxShadow: "0 0 10px rgba(0,0,0,0)"
+    }, cssTranslateX(width)));
+    domAnimateTo(view.navbar.$el, $.extend({
+      opacity: 0
+    }, cssTranslateX(width)));
+    domAnimateTo(lastView.$el, cssTranslateX(0));
+    domAnimateTo(lastView.navbar.$el, $.extend({
+      opacity: 1
+    }, cssTranslateX(0)));
+    return this.stack.pop();
+  };
+
+  NavCtrl.prototype.push = function($dom, options) {
+    var lastView, navbar, view;
+    if (options == null) {
+      options = {};
+    }
+    lastView = this.currentView();
+    options.prevNavbar = lastView != null ? lastView.navbar : void 0;
+    view = new NavViewItem($dom);
+    navbar = new NavbarItem(options);
+    if (!this.stack.length) {
+      navbar.$(".btn-back").hide();
+    }
+    if (lastView) {
+      lastView.hide();
+    }
+    this.$(".views").append(view.$el);
+    this.$(".navbar").append(navbar.$el);
+    this.stack.push(view);
+    view.setNavbar(navbar);
+    return view.show();
+  };
+
+  return NavCtrl;
+
+})(BaseView);
+
+domAnimateTo = function($dom, to) {
+  return $dom.css(cssTransition("all ease-in-out .2s")).css(to).one("-webkit-transitionEnd transitionend", function() {
+    return $dom.css(cssTransition(""));
+  });
+};
+
+domAnimate = function($dom, from, to) {
+  $dom.css(from);
+  return setTimeout((function() {
+    return domAnimateTo($dom, to);
+  }), 33);
+};
+
+cssTransition = function(val) {
+  return {
+    "-webkit-transition": "-webkit-" + val,
+    "transition": val
+  };
+};
+
+cssTranslate = function(val) {
+  return {
+    "-webkit-transform": val,
+    "transform": val
+  };
+};
+
+cssTranslateX = function(x) {
+  return cssTranslate("translateX(" + x + "px)");
+};
+
+$.fn.navCtrl = function(options) {
+  var nav;
+  if (options == null) {
+    options = {};
+  }
+  options.el = this;
+  nav = new NavCtrl(options);
+  $(this).data("nav", nav);
+  return nav;
+};

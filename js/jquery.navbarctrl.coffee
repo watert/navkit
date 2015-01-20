@@ -155,7 +155,7 @@ class NavbarItem extends BaseView
 		<div class="navbar-item">
 			<div class="navbar-left">
 				<button class="btn btn-back">
-					< <span class="back-btn-text"> Back </span>
+					<i class="fa fa-angle-left"></i> <span class="back-btn-text"> Back </span>
 				</button>
 			</div>
 			<div class="navbar-title">
